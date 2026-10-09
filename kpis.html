@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>KPIs y Análisis - MantenApp 360</title>
+    
+    <!-- Librerías -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ===== ESTILOS ===== */
+        :root {
+            --bg-main: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-primary: #1a237e;
+            --text-dark: #333333;
+            --border-color: #e8eaf6;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background: var(--bg-main); 
+            color: var(--text-dark); 
+            padding: 24px; 
+            transition: var(--transition);
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; }
+
+        /* BARRA VOLVER */
+        .barra-volver {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-volver {
+            background: white;
+            border: 2px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .btn-volver:hover {
+            background: var(--text-primary);
+            color: white;
+            border-color: var(--text-primary);
+            transform: translateX(-3px);
+        }
+
+        .sync-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sync-status-bar .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .sync-status-bar.syncing .dot {
+            background: #ff9800;
+        }
+
+        .sync-status-bar.error .dot {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: white;
+            padding: 25px 35px;
+            border-radius: var(--radius);
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+
+        .logo-container {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .logo-container:hover {
+            transform: scale(1.05);
+            border-color: #ffc107;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-container i {
+            font-size: 32px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header h1 { 
+            font-size: 26px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .header h1 i { 
+            font-size: 28px;
+            color: #ffc107;
+        }
+
+        .header h1 .edit-icon {
+            font-size: 16px;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+
+        .header h1:hover .edit-icon {
+            opacity: 1;
+        }
+
+        .header p { 
+            opacity: 0.9; 
+            margin-top: 4px; 
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        .header-actions { 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* BOTONES */
+        .btn {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.5s;
+            transform: translate(-50%, -50%);
+        }
+
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #1a237e, #0d47a1); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(26,35,126,0.4); }
+        .btn-success { background: linear-gradient(135deg, #2e7d32, #1b5e20); }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,125,50,0.4); }
+        .btn-info { background: linear-gradient(135deg, #0288d1, #01579b); }
+        .btn-info:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(2,136,209,0.4); }
+        .btn-warning { background: linear-gradient(135deg, #f57c00, #e65100); }
+        .btn-warning:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,124,0,0.4); }
+        .btn-danger { background: linear-gradient(135deg, #c62828, #b71c1c); }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(198,40,40,0.4); }
+        .btn-purple { background: linear-gradient(135deg, #6a1b9a, #4a148c); }
+        .btn-purple:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(106,27,154,0.4); }
+        .btn-outline { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: white; transform: translateY(-2px); }
+
+        /* KPIS */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border-left: 5px solid #1a237e;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .kpi-card .label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .kpi-card .value { font-size: 28px; font-weight: 800; color: #1a237e; margin-top: 6px; }
+        .kpi-card .sub { font-size: 12px; color: #888; margin-top: 4px; }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: var(--radius) var(--radius) 0 0;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #555;
+            border-radius: 10px 10px 0 0;
+            transition: var(--transition);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover { background: #e8eaf6; color: #1a237e; transform: translateY(-2px); }
+        .tab-btn.active { background: #1a237e; color: white; box-shadow: var(--shadow-sm); }
+        .tab-btn i { font-size: 16px; }
+
+        .tab-content {
+            background: white;
+            border-radius: 0 0 var(--radius) var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow-md);
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* GRÁFICAS */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .chart-box {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .chart-box:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .chart-container { position: relative; width: 100%; height: 350px; }
+
+        /* TOOLBAR */
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+            background: white;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toolbar input, .toolbar select {
+            padding: 10px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: var(--transition);
+            background: white;
+            min-width: 180px;
+        }
+
+        .toolbar input:focus, .toolbar select:focus {
+            outline: none;
+            border-color: #1a237e;
+            box-shadow: 0 0 0 4px rgba(26,35,126,0.1);
+        }
+
+        .toolbar .search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .toolbar .search-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .toolbar .search-wrapper input { padding-left: 40px; width: 100%; }
+
+        /* TABLAS */
+        .tabla-wrapper { 
+            max-height: 500px; 
+            overflow-y: auto; 
+            border: 1px solid var(--border-color); 
+            border-radius: 10px;
+        }
+
+        .tabla-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+        .tabla-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .tabla-wrapper::-webkit-scrollbar-thumb { background: #1a237e; border-radius: 10px; }
+        .tabla-wrapper::-webkit-scrollbar-thumb:hover { background: #0d47a1; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        table th { 
+            background: linear-gradient(135deg, #1a237e, #0d47a1);
+            color: white; 
+            padding: 10px 8px; 
+            text-align: left; 
+            font-weight: 600; 
+            font-size: 11px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        table td { padding: 6px 8px; border-bottom: 1px solid var(--border-color); font-size: 12px; }
+        table tr:hover td { background: #f5f5f9; }
+        table tr:nth-child(even) td { background: #fafafa; }
+
+        .editable-cell { background: #fffde7; cursor: text; }
+        .editable-cell:hover { background: #fff8e1; box-shadow: inset 0 0 0 2px #ffc107; }
+        .formula-cell { background: #e8eaf6; font-weight: 600; color: #1a237e; }
+
+        .fila-promedio td { 
+            background: linear-gradient(135deg, #1a237e, #0d47a1) !important; 
+            color: white !important; 
+            font-weight: 700 !important; 
+            border-top: 3px solid #ffc107;
+        }
+
+        /* BADGES */
+        .badge { 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 10px; 
+            font-weight: 700; 
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge.alta, .badge.optima { background: linear-gradient(135deg, #c8e6c9, #a5d6a7); color: #1b5e20; }
+        .badge.media, .badge.aceptable { background: linear-gradient(135deg, #fff9c4, #ffe082); color: #f57f17; }
+        .badge.critica, .badge.deficiente { background: linear-gradient(135deg, #ffcdd2, #ef9a9a); color: #b71c1c; }
+
+        /* SECTION TITLE */
+        .section-title { 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: #1a237e; 
+            margin-bottom: 18px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* REFERENCIAS */
+        .ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .ref-box {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .ref-box h3 { margin-bottom: 14px; color: #1a237e; display: flex; align-items: center; gap: 10px; font-size: 17px; }
+        .ref-info {
+            background: linear-gradient(135deg, #e8eaf6, #c5cae9);
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        /* HISTORIAL */
+        .historial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .historial-card {
+            background: white;
+            padding: 18px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .historial-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .historial-card .fecha { font-size: 13px; color: #666; display: flex; align-items: center; gap: 8px; }
+        .historial-card .titulo { font-size: 17px; font-weight: 700; color: #1a237e; margin: 8px 0; }
+        .historial-card .stats { display: flex; gap: 12px; font-size: 12px; color: #555; flex-wrap: wrap; }
+        .historial-card .stats span { display: flex; align-items: center; gap: 4px; }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1a237e;
+            color: white;
+            padding: 14px 22px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 400px;
+            font-size: 14px;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 650px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h2 { color: #1a237e; font-size: 22px; }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover { color: #c62828; transform: rotate(90deg); }
+
+        .drop-zone {
+            border: 3px dashed var(--border-color);
+            border-radius: var(--radius);
+            padding: 35px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #1a237e;
+            background: rgba(26,35,126,0.05);
+        }
+
+        .drop-zone i { font-size: 44px; color: #1a237e; margin-bottom: 12px; }
+        .drop-zone p { color: #666; font-size: 15px; }
+        .drop-zone .small { font-size: 12px; color: #999; margin-top: 6px; }
+
+        /* EDITOR DE TÍTULO */
+        .title-edit-modal .modal {
+            max-width: 500px;
+        }
+
+        .title-edit-modal input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+            transition: var(--transition);
+        }
+
+        .title-edit-modal input[type="text"]:focus {
+            outline: none;
+            border-color: #1a237e;
+            box-shadow: 0 0 0 4px rgba(26,35,126,0.1);
+        }
+
+        .logo-upload-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #1a237e;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .logo-upload-btn:hover {
+            background: #0d47a1;
+            transform: translateY(-2px);
+        }
+
+        /* LOADING OVERLAY */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 2000;
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e8eaf6;
+            border-top-color: #1a237e;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 14px;
+            color: #1a237e;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .ref-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            .header { padding: 18px; }
+            .header h1 { font-size: 18px; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .tabs { padding: 6px 8px; }
+            .tab-btn { padding: 8px 14px; font-size: 12px; }
+            .tab-content { padding: 14px; }
+            .toolbar { flex-direction: column; }
+            .toolbar .search-wrapper { min-width: 100%; }
+            .historial-grid { grid-template-columns: 1fr; }
+            .logo-container { width: 50px; height: 50px; }
+            .header-left { gap: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .header-actions .btn { font-size: 11px; padding: 6px 12px; }
+        }
+
+        /* MODO OSCURO */
+        body.dark-mode {
+            --bg-main: #121212;
+            --card-bg: #1e1e1e;
+            --text-dark: #e0e0e0;
+            --border-color: #333333;
+        }
+
+        body.dark-mode .kpi-card,
+        body.dark-mode .chart-box,
+        body.dark-mode .ref-box,
+        body.dark-mode .toolbar,
+        body.dark-mode .tabs,
+        body.dark-mode .tab-content,
+        body.dark-mode .historial-card,
+        body.dark-mode .modal,
+        body.dark-mode .btn-volver,
+        body.dark-mode .sync-status-bar {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .kpi-card .value { color: #7986cb; }
+        body.dark-mode .kpi-card .label { color: #aaa; }
+        body.dark-mode .tab-btn { color: #aaa; }
+        body.dark-mode .tab-btn:hover { background: #2a2a2a; color: #e0e0e0; }
+        body.dark-mode .editable-cell { background: #2a2a2a; }
+        body.dark-mode .editable-cell:hover { background: #333333; }
+        body.dark-mode .formula-cell { background: #2a2a2a; color: #7986cb; }
+        body.dark-mode table tr:nth-child(even) td { background: #252525; }
+        body.dark-mode table tr:hover td { background: #2a2a2a; }
+        body.dark-mode .toolbar input, body.dark-mode .toolbar select {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+        body.dark-mode .ref-info { background: #2a2a2a; }
+        body.dark-mode .drop-zone { border-color: #444; }
+        body.dark-mode .drop-zone:hover { border-color: #7986cb; background: rgba(121,134,203,0.1); }
+        body.dark-mode .sync-status-bar { color: #aaa; }
+
+        .btn-delete { 
+            background: linear-gradient(135deg, #c62828, #b71c1c);
+            color: white; 
+            border: none; 
+            padding: 4px 10px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 11px;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .btn-delete:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(198,40,40,0.4); }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s ease infinite;
+        }
+
+        .btn .loading {
+            width: 16px;
+            height: 16px;
+            border-width: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============ LOADING OVERLAY ============ -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">Sincronizando con Base General...</div>
+</div>
+
+<div class="container">
+
+    <!-- ============ BARRA SUPERIOR: VOLVER + ESTADO SYNC ============ -->
+    <div class="barra-volver">
+        <button class="btn-volver" onclick="volverAlIndex()">
+            <i class="fas fa-arrow-left"></i> Volver al menú
+        </button>
+        <div class="sync-status-bar" id="syncStatusBar">
+            <span class="dot"></span>
+            <span id="syncStatusText">Conectado · Sincronización en tiempo real</span>
+        </div>
+    </div>
+
+    <!-- ============ HEADER ============ -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-container" onclick="document.getElementById('logoInput').click()" title="Haz clic para cambiar el logo">
+                <img id="logoPreview" src="" alt="Logo" style="display:none;">
+                <i id="logoIcon" class="fas fa-chart-line"></i>
+                <input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="cambiarLogo(this.files[0])">
+            </div>
+            <div class="header-text">
+                <h1 onclick="editarTitulo()">
+                    <span id="tituloPrincipal">📊 Dashboard RAM</span>
+                    <i class="fas fa-pen edit-icon"></i>
+                </h1>
+                <p><i class="fas fa-road"></i> <span id="subtituloPrincipal">Equipos Propios · Monitoreo en Tiempo Real</span></p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-info" onclick="toggleFullScreen()"><i class="fas fa-expand"></i> Pantalla</button>
+            <button class="btn btn-success" onclick="exportarPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn btn-warning" onclick="exportarCSV()"><i class="fas fa-file-csv"></i> CSV</button>
+            <button class="btn btn-primary" onclick="mostrarModalImportar()"><i class="fas fa-file-import"></i> Importar</button>
+            <button class="btn btn-purple" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+        </div>
+    </div>
+
+    <!-- ============ KPIS ============ -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="label"><i class="fas fa-check-circle" style="color:#2e7d32;"></i> Disponibilidad Técnica</div>
+            <div class="value" id="kpiDt">--</div>
+            <div class="sub">Promedio general</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label"><i class="fas fa-clock" style="color:#f57c00;"></i> MTBF Promedio</div>
+            <div class="value" id="kpiMtbf">--</div>
+            <div class="sub">Tiempo medio entre fallas</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label"><i class="fas fa-tools" style="color:#c62828;"></i> MTTR Promedio</div>
+            <div class="value" id="kpiMttr">--</div>
+            <div class="sub">Tiempo medio de reparación</div>
+        </div>
+        <div class="kpi-card">
+            <div class="label"><i class="fas fa-shield-alt" style="color:#6a1b9a;"></i> Confiabilidad (t=50h)</div>
+            <div class="value" id="kpiConf">--</div>
+            <div class="sub">Probabilidad de operación sin fallas</div>
+        </div>
+        <div class="kpi-card" style="border-left-color:#ffc107;">
+            <div class="label"><i class="fas fa-calendar-alt" style="color:#f57c00;"></i> Mes Actual</div>
+            <div class="value" id="kpiMes" style="font-size:20px;">--</div>
+            <div class="sub">Equipos: <span id="kpiTotalEquipos">0</span></div>
+        </div>
+    </div>
+
+    <!-- ============ TABS ============ -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab4"><i class="fas fa-chart-bar"></i> Gráficas</button>
+        <button class="tab-btn" data-tab="tab1"><i class="fas fa-list"></i> Registro</button>
+        <button class="tab-btn" data-tab="tab2"><i class="fas fa-calculator"></i> Cálculos RAM</button>
+        <button class="tab-btn" data-tab="tab3"><i class="fas fa-table"></i> Referencias</button>
+        <button class="tab-btn" data-tab="tab5"><i class="fas fa-history"></i> Historial</button>
+    </div>
+
+    <!-- ============ TAB 4: GRÁFICAS ============ -->
+    <div class="tab-content active" id="tab4">
+        <div class="section-title">
+            <span><i class="fas fa-chart-line"></i> Gráficas de Desempeño RAM</span>
+            <button class="btn btn-primary" onclick="actualizarTodo()"><i class="fas fa-sync"></i> Actualizar</button>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-box">
+                <div class="chart-container">
+                    <canvas id="chartDisp"></canvas>
+                </div>
+            </div>
+            <div class="chart-box">
+                <div class="chart-container">
+                    <canvas id="chartMttr"></canvas>
+                </div>
+            </div>
+            <div class="chart-box">
+                <div class="chart-container">
+                    <canvas id="chartConf"></canvas>
+                </div>
+            </div>
+            <div class="chart-box">
+                <div class="chart-container">
+                    <canvas id="chartCurvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TAB 1: REGISTRO ============ -->
+    <div class="tab-content" id="tab1">
+        <div class="section-title">
+            <span><i class="fas fa-clipboard-list"></i> Registro de Equipos</span>
+            <button class="btn btn-primary" onclick="irAAgregarEquipo()"><i class="fas fa-plus-circle"></i> Agregar en Base General</button>
+        </div>
+        <div class="toolbar">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar en todos los campos..." oninput="filtrarEquipos()">
+            </div>
+            <select id="filterTipo" onchange="filtrarEquipos()">
+                <option value="">Todos los tipos</option>
+            </select>
+            <select id="filterEstado" onchange="filtrarEquipos()">
+                <option value="">Todos los estados</option>
+                <option value="OPTIMA">Óptima</option>
+                <option value="ACEPTABLE">Aceptable</option>
+                <option value="DEFICIENTE">Deficiente</option>
+            </select>
+            <span style="color:#666;font-size:13px;" id="equipoCount">Mostrando: 0 equipos</span>
+        </div>
+        <div class="tabla-wrapper">
+            <table id="tablaRegistro">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Proyecto</th><th>Tipo</th><th>Marca</th><th>Modelo</th>
+                        <th>Año</th><th>Placa</th><th>Unidad</th><th>Lectura Ini</th>
+                        <th>Lectura Fin</th><th>Uso Total</th><th>Horas Op</th>
+                        <th>Maint Prog</th><th>Parada Fallas</th><th>N° Fallas</th>
+                        <th>Tiempo Eval</th><th>MTBF</th><th>MTTR</th><th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="registroBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============ TAB 2: CÁLCULOS RAM ============ -->
+    <div class="tab-content" id="tab2">
+        <div class="section-title">
+            <span><i class="fas fa-calculator"></i> Cálculos RAM</span>
+        </div>
+        <div class="tabla-wrapper">
+            <table id="tablaRam">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Equipo</th><th>Placa</th><th>MTBF</th><th>MTTR</th>
+                        <th>λ</th><th>μ</th><th>Disp. Téc.</th><th>Disp. Op.</th>
+                        <th>Conf. (50h)</th><th>Conf. (100h)</th><th>Mant. (5h)</th>
+                        <th>Mant. (10h)</th><th>Estado Conf.</th><th>Estado Disp.</th>
+                    </tr>
+                </thead>
+                <tbody id="ramBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ============ TAB 3: REFERENCIAS ============ -->
+    <div class="tab-content" id="tab3">
+        <div class="section-title">
+            <span><i class="fas fa-book"></i> Tablas de Referencia</span>
+        </div>
+        <div class="ref-grid">
+            <div class="ref-box">
+                <h3><i class="fas fa-shield-alt" style="color:#c62828;"></i> Confiabilidad R(t)</h3>
+                <div class="ref-info">
+                    <span><strong>λ Promedio:</strong> <span id="refLambda">--</span> 1/h</span>
+                </div>
+                <div class="tabla-wrapper" style="max-height:280px;">
+                    <table>
+                        <thead><tr><th>Tiempo (h)</th><th>Confiabilidad</th></tr></thead>
+                        <tbody id="confBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="ref-box">
+                <h3><i class="fas fa-tools" style="color:#0288d1;"></i> Mantenibilidad M(t)</h3>
+                <div class="ref-info">
+                    <span><strong>μ Promedio:</strong> <span id="refMu">--</span> 1/h</span>
+                </div>
+                <div class="tabla-wrapper" style="max-height:280px;">
+                    <table>
+                        <thead><tr><th>Tiempo (h)</th><th>Mantenibilidad</th></tr></thead>
+                        <tbody id="mantBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TAB 5: HISTORIAL ============ -->
+    <div class="tab-content" id="tab5">
+        <div class="section-title">
+            <span><i class="fas fa-history"></i> Historial de Reportes</span>
+            <button class="btn btn-danger" onclick="limpiarHistorial()"><i class="fas fa-trash"></i> Limpiar</button>
+        </div>
+        <div class="toolbar" style="margin-bottom:16px;">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="historialSearch" placeholder="Buscar en historial..." oninput="filtrarHistorial()">
+            </div>
+            <span style="color:#666;font-size:13px;" id="historialCount">Total: 0 reportes</span>
+        </div>
+        <div class="historial-grid" id="historialGrid"></div>
+    </div>
+
+</div>
+
+<!-- ============ MODAL IMPORTAR EXCEL ============ -->
+<div class="modal-overlay" id="modalImportar">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-file-import" style="color:#1a237e;"></i> Importar desde Excel</h2>
+            <button class="modal-close" onclick="cerrarModalImportar()">&times;</button>
+        </div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p><strong>Arrastra tu archivo Excel aquí</strong></p>
+            <p class="small">o haz clic para seleccionar (.xlsx, .xls)</p>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;" onchange="procesarExcel(this.files[0])">
+        </div>
+        <div id="importPreview" style="margin-top:18px;display:none;">
+            <h4 style="color:#1a237e;font-size:16px;">📊 Vista previa de datos</h4>
+            <div style="background:#f5f5f9;padding:12px;border-radius:8px;max-height:200px;overflow-y:auto;font-size:12px;" id="previewData"></div>
+            <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn btn-success" onclick="confirmarImportacion()"><i class="fas fa-check"></i> Confirmar</button>
+                <button class="btn btn-danger" onclick="cancelarImportacion()"><i class="fas fa-times"></i> Cancelar</button>
+            </div>
+        </div>
+        <div id="importProgress" style="display:none;text-align:center;padding:20px;">
+            <div class="loading" style="width:40px;height:40px;border-width:4px;border-color:#1a237e;border-top-color:transparent;"></div>
+            <p style="margin-top:10px;color:#666;">Procesando datos...</p>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:#999;border-top:1px solid #eee;padding-top:12px;">
+            <strong>Columnas soportadas:</strong> ID, Tipo, Marca, Modelo, Año, Placa, Unidad, 
+            Lectura Inicial, Lectura Final, Horas Operativas, Horas Maint. Prog., 
+            Horas Parada Fallas, N° Fallas
+        </div>
+    </div>
+</div>
+
+<!-- ============ MODAL EDITAR TÍTULO ============ -->
+<div class="modal-overlay title-edit-modal" id="modalEditarTitulo">
+    <div class="modal">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit" style="color:#1a237e;"></i> Editar Título</h2>
+            <button class="modal-close" onclick="cerrarModalTitulo()">&times;</button>
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="font-weight:600;display:block;margin-bottom:5px;color:#333;">Título principal</label>
+            <input type="text" id="inputTitulo" value="📊 Dashboard RAM">
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="font-weight:600;display:block;margin-bottom:5px;color:#333;">Subtítulo</label>
+            <input type="text" id="inputSubtitulo" value="Equipos Propios · Monitoreo en Tiempo Real">
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="font-weight:600;display:block;margin-bottom:5px;color:#333;">Cambiar Logo</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <div style="width:60px;height:60px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid #ddd;">
+                    <img id="logoPreviewModal" src="" alt="Logo" style="width:100%;height:100%;object-fit:cover;display:none;">
+                    <i id="logoIconModal" class="fas fa-building" style="font-size:24px;color:#999;"></i>
+                </div>
+                <label class="logo-upload-btn" style="font-size:13px;padding:8px 16px;">
+                    <i class="fas fa-upload"></i> Subir Logo
+                    <input type="file" accept="image/*" style="display:none;" onchange="cambiarLogoModal(this.files[0])">
+                </label>
+                <button class="btn btn-danger" style="font-size:12px;padding:8px 14px;" onclick="eliminarLogo()"><i class="fas fa-trash"></i></button>
+            </div>
+            <p style="font-size:11px;color:#999;margin-top:8px;">
+                <i class="fas fa-info-circle"></i> El logo de tu empresa se sincroniza automáticamente desde <b>Mi Perfil</b>
+            </p>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <button class="btn btn-success" onclick="guardarTitulo()"><i class="fas fa-save"></i> Guardar</button>
+            <button class="btn btn-danger" onclick="cerrarModalTitulo()"><i class="fas fa-times"></i> Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">¡Acción completada!</span>
+</div>
+
+<!-- ============ FIREBASE SDKs ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script>
+// ================================================================
+// CONFIGURACIÓN FIREBASE (misma que el index.html)
+// ================================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyCAxYoYqsssLx00Iat2LwNc_JLaDME-XMc",
+    authDomain: "preventiapps.firebaseapp.com",
+    projectId: "preventiapps",
+    storageBucket: "preventiapps.firebasestorage.app",
+    messagingSenderId: "306941304915",
+    appId: "1:306941304915:web:0f3075bbd6969be07e66a6",
+    measurementId: "G-L9HWLKC6J4"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ================================================================
+// ESTADO GLOBAL
+// ================================================================
+let usuarioActual = null;
+let usuarioPerfil = null;
+let equipos = [];               // Equipos convertidos a formato KPIs
+let equiposRaw = [];            // Equipos tal como están en Firestore
+let contadorId = 1;
+let charts = {};
+let equipoFiltrado = [];
+let historial = JSON.parse(localStorage.getItem('ramHistorial') || '[]');
+let datosImportados = null;
+let listenerEquipos = null;
+let syncStatusEl = null;
+
+// Config local (título/subtítulo del KPIs)
+let config = JSON.parse(localStorage.getItem('ramConfigKPIs') || '{}');
+if (config.titulo) document.getElementById('tituloPrincipal').textContent = config.titulo;
+if (config.subtitulo) document.getElementById('subtituloPrincipal').textContent = config.subtitulo;
+if (config.logo) {
+    document.getElementById('logoPreview').src = config.logo;
+    document.getElementById('logoPreview').style.display = 'block';
+    document.getElementById('logoIcon').style.display = 'none';
+}
+
+// ================================================================
+// CONVERSIÓN: FIRESTORE → KPIs
+// ================================================================
+function equipoDeFirestoreAKPIs(eq) {
+    // Mapeo de campos compartidos
+    let unidadFinal = '';
+    if (eq.tipo_servicio === 'HR') unidadFinal = 'HR';
+    else if (eq.tipo_servicio === 'KM') unidadFinal = 'KM';
+    else unidadFinal = eq.tipo_servicio || 'HR'; // por defecto HR
+    
+    return {
+        id: eq.id || '',
+        proyecto: eq.proyecto_actual || '',
+        tipo: eq.nombre || '',
+        marca: eq.marca || '',
+        modelo: eq.modelo || '',
+        anio: eq.año || eq.anio || new Date().getFullYear(),
+        placa: eq.placa_serie || eq.placa || '',
+        unidad: unidadFinal,
+        // Campos exclusivos de KPIs (con prefijo kpis_)
+        lecturaIni: eq.kpis_lecturaIni != null ? eq.kpis_lecturaIni : 0,
+        lecturaFin: eq.kpis_lecturaFin != null ? eq.kpis_lecturaFin : 0,
+        horasOp: eq.kpis_horasOp != null ? eq.kpis_horasOp : 0,
+        hrsMaint: eq.kpis_hrsMaint != null ? eq.kpis_hrsMaint : 0,
+        hrsDown: eq.kpis_hrsDown != null ? eq.kpis_hrsDown : 0,
+        nFallas: eq.kpis_nFallas != null ? eq.kpis_nFallas : 0
+    };
+}
+
+// ================================================================
+// CONVERSIÓN: KPIs → FIRESTORE (solo campos exclusivos de KPIs)
+// ================================================================
+// Solo guardamos los campos que el KPIs maneja (kpis_*).
+// Los campos de Base General NO se tocan, porque el equipo ya existe.
+function camposKPIsParaFirestore(eqKPIs) {
+    return {
+        kpis_lecturaIni: parseFloat(eqKPIs.lecturaIni) || 0,
+        kpis_lecturaFin: parseFloat(eqKPIs.lecturaFin) || 0,
+        kpis_horasOp: parseFloat(eqKPIs.horasOp) || 0,
+        kpis_hrsMaint: parseFloat(eqKPIs.hrsMaint) || 0,
+        kpis_hrsDown: parseFloat(eqKPIs.hrsDown) || 0,
+        kpis_nFallas: parseFloat(eqKPIs.nFallas) || 0
+    };
+}
+
+// ================================================================
+// FUNCIONES DE CÁLCULO
+// ================================================================
+function calcMTBF(horasOp, nFallas) { return nFallas > 0 ? horasOp / nFallas : horasOp; }
+function calcMTTR(hrsDown, nFallas) { return nFallas > 0 ? hrsDown / nFallas : 0; }
+function calcLambda(mtbf) { return mtbf > 0 ? 1 / mtbf : 0; }
+function calcMu(mttr) { return mttr > 0 ? 1 / mttr : 0; }
+function calcDisponibilidadTec(mtbf, mttr) { return (mtbf + mttr) > 0 ? mtbf / (mtbf + mttr) : 0; }
+function calcDisponibilidadOp(horasOp, tiempoEval) { return tiempoEval > 0 ? horasOp / tiempoEval : 0; }
+function calcConfiabilidad(lambda, t) { return Math.exp(-lambda * t); }
+function calcMantenibilidad(mu, t) { return 1 - Math.exp(-mu * t); }
+function estadoConfiabilidad(val) { if (val >= 0.75) return "ALTA"; if (val >= 0.5) return "MEDIA"; return "CRÍTICA"; }
+function estadoDisponibilidad(val) { if (val >= 0.9) return "OPTIMA"; if (val >= 0.8) return "ACEPTABLE"; return "DEFICIENTE"; }
+
+// ================================================================
+// PROCESAMIENTO DE DATOS
+// ================================================================
+function procesarEquipos() {
+    return equipos.map(e => {
+        const usoTotal = e.lecturaFin - e.lecturaIni;
+        const tiempoEval = e.horasOp + e.hrsMaint + e.hrsDown;
+        const mtbf = calcMTBF(e.horasOp, e.nFallas);
+        const mttr = calcMTTR(e.hrsDown, e.nFallas);
+        const lambda = calcLambda(mtbf);
+        const mu = calcMu(mttr);
+        const dispTec = calcDisponibilidadTec(mtbf, mttr);
+        const dispOp = calcDisponibilidadOp(e.horasOp, tiempoEval);
+        const conf50 = calcConfiabilidad(lambda, 50);
+        const conf100 = calcConfiabilidad(lambda, 100);
+        const mant5 = calcMantenibilidad(mu, 5);
+        const mant10 = calcMantenibilidad(mu, 10);
+        return { ...e, usoTotal, tiempoEval, mtbf, mttr, lambda, mu, dispTec, dispOp, conf50, conf100, mant5, mant10 };
+    });
+}
+
+function obtenerPromedios() {
+    const data = procesarEquipos();
+    const n = data.length || 1;
+    return {
+        avgMtbf: data.reduce((s, r) => s + r.mtbf, 0) / n,
+        avgMttr: data.reduce((s, r) => s + r.mttr, 0) / n,
+        avgLambda: data.reduce((s, r) => s + r.lambda, 0) / n,
+        avgMu: data.reduce((s, r) => s + r.mu, 0) / n,
+        avgDispTec: data.reduce((s, r) => s + r.dispTec, 0) / n,
+        avgDispOp: data.reduce((s, r) => s + r.dispOp, 0) / n,
+        avgConf50: data.reduce((s, r) => s + r.conf50, 0) / n,
+        avgConf100: data.reduce((s, r) => s + r.conf100, 0) / n,
+        avgMant5: data.reduce((s, r) => s + r.mant5, 0) / n,
+        avgMant10: data.reduce((s, r) => s + r.mant10, 0) / n
+    };
+}
+
+// ================================================================
+// SINCRONIZACIÓN CON FIRESTORE
+// ================================================================
+function iniciarListener() {
+    if (!usuarioActual) return;
+
+    setSyncStatus('syncing', 'Conectando...');
+    showLoading('Sincronizando con Base General...');
+
+    listenerEquipos = db.collection('usuarios').doc(usuarioActual.uid)
+        .collection('appData').doc('equipos_propios')
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                equiposRaw = data.items || [];
+            } else {
+                equiposRaw = [];
+            }
+            
+            // Convertir a formato KPIs
+            equipos = equiposRaw.map(equipoDeFirestoreAKPIs);
+            
+            // Actualizar filtro de tipos dinámicamente
+            actualizarFiltroTipos();
+            
+            // Actualizar contador de ID
+            const maxId = equipos.reduce((max, e) => {
+                const num = parseInt(String(e.id).replace(/[^0-9]/g, '')) || 0;
+                return num > max ? num : max;
+            }, 0);
+            contadorId = maxId + 1;
+
+            // Refrescar UI
+            actualizarTodo();
+            hideLoading();
+            setSyncStatus('ok', 'Conectado · Sincronización en tiempo real');
+            
+        }, (error) => {
+            console.error('Error listener equipos:', error);
+            hideLoading();
+            setSyncStatus('error', 'Error de conexión');
+            showToast('❌ Error al sincronizar con Firestore', 'error');
+        });
+}
+
+function detenerListener() {
+    if (listenerEquipos) {
+        listenerEquipos();
+        listenerEquipos = null;
+    }
+}
+
+// Guardar solo los campos kpis_* de un equipo específico en Firestore
+async function guardarCamposKPIs(equipoId, cambios) {
+    if (!usuarioActual) return;
+    try {
+        // Obtener la lista actual de equipos_propios
+        const docRef = db.collection('usuarios').doc(usuarioActual.uid)
+            .collection('appData').doc('equipos_propios');
+        
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) return;
+        
+        const items = docSnap.data().items || [];
+        const idx = items.findIndex(e => e.id === equipoId);
+        if (idx === -1) {
+            showToast('⚠️ Equipo no encontrado en Base General', 'warning');
+            return;
+        }
+        
+        // Actualizar solo los campos kpis_*
+        items[idx] = { ...items[idx], ...cambios };
+        
+        // Sanitizar por si acaso
+        const itemsLimpios = items.map(item => {
+            const limpio = {};
+            Object.keys(item).forEach(k => {
+                if (item[k] !== undefined) limpio[k] = item[k];
+            });
+            return limpio;
+        });
+        
+        await docRef.set({
+            items: itemsLimpios,
+            ultimaActualizacion: new Date()
+        });
+        
+    } catch (error) {
+        console.error('Error guardando KPIs:', error);
+        showToast('❌ Error al guardar en Firestore', 'error');
+    }
+}
+
+// ================================================================
+// UI: STATUS SYNC + LOADING
+// ================================================================
+function setSyncStatus(status, texto) {
+    if (!syncStatusEl) syncStatusEl = document.getElementById('syncStatusBar');
+    if (!syncStatusEl) return;
+    syncStatusEl.className = 'sync-status-bar';
+    if (status === 'syncing') syncStatusEl.classList.add('syncing');
+    else if (status === 'error') syncStatusEl.classList.add('error');
+    document.getElementById('syncStatusText').textContent = texto;
+}
+
+function showLoading(texto) {
+    document.getElementById('loadingText').textContent = texto || 'Cargando...';
+    document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// ================================================================
+// NAVEGACIÓN
+// ================================================================
+function volverAlIndex() {
+    sessionStorage.setItem('mantenapp_volviendo_de_modulo', '1');
+    window.location.href = 'index.html';
+}
+
+function irAAgregarEquipo() {
+    // Flag para que el index abra el modal de Registrar Equipo automáticamente
+    sessionStorage.setItem('kpis_crear_equipo', '1');
+    sessionStorage.setItem('mantenapp_volviendo_de_modulo', '1');
+    window.location.href = 'index.html';
+}
+
+// Cuando eliminan un equipo desde KPIs → lo mandamos a editar en Base General
+function irAEditarEnBaseGeneral(equipoId) {
+    sessionStorage.setItem('kpis_editar_equipo_id', equipoId);
+    sessionStorage.setItem('mantenapp_volviendo_de_modulo', '1');
+    window.location.href = 'index.html';
+}
+
+// ================================================================
+// ACTUALIZAR FILTRO DE TIPOS DINÁMICO
+// ================================================================
+function actualizarFiltroTipos() {
+    const sel = document.getElementById('filterTipo');
+    if (!sel) return;
+    const tiposSet = new Set();
+    equipos.forEach(e => { if (e.tipo) tiposSet.add(e.tipo); });
+    const tipos = Array.from(tiposSet).sort();
+    
+    const valorActual = sel.value;
+    sel.innerHTML = '<option value="">Todos los tipos</option>';
+    tipos.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        sel.appendChild(opt);
+    });
+    if (valorActual && tipos.includes(valorActual)) sel.value = valorActual;
+}
+
+// ================================================================
+// FILTROS
+// ================================================================
+function filtrarEquipos() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const tipo = document.getElementById('filterTipo').value;
+    const estado = document.getElementById('filterEstado').value;
+
+    const data = procesarEquipos();
+    equipoFiltrado = data.filter(r => {
+        const searchableFields = [
+            r.id, r.proyecto, r.tipo, r.marca, r.modelo, 
+            r.placa, r.unidad, r.anio, r.lecturaIni, r.lecturaFin,
+            r.horasOp, r.hrsMaint, r.hrsDown, r.nFallas
+        ];
+        const matchSearch = search === '' || searchableFields.some(f => 
+            String(f).toLowerCase().includes(search)
+        );
+        const matchTipo = tipo === '' || r.tipo === tipo;
+        const matchEstado = estado === '' || estadoDisponibilidad(r.dispTec) === estado;
+        return matchSearch && matchTipo && matchEstado;
+    });
+
+    document.getElementById('equipoCount').textContent = `Mostrando: ${equipoFiltrado.length} equipos`;
+    renderRegistroFiltrado();
+}
+
+// ================================================================
+// RENDERIZADO
+// ================================================================
+function renderRegistroFiltrado() {
+    const tbody = document.getElementById('registroBody');
+    tbody.innerHTML = '';
+    const data = equipoFiltrado.length > 0 ? equipoFiltrado : procesarEquipos();
+    
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="19" style="text-align:center;padding:30px;color:#999;">
+            <i class="fas fa-inbox" style="font-size:32px;display:block;margin-bottom:10px;"></i>
+            No hay equipos registrados.<br>
+            <small>Los equipos que agregues en <b>Base General → Equipos Propios</b> aparecerán aquí automáticamente.</small>
+        </td></tr>`;
+        return;
+    }
+    
+    data.forEach((r) => {
+        // Buscar el índice original en equiposRaw
+        const originalIdx = equiposRaw.findIndex(e => e.id === r.id);
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${r.id}</strong></td>
+                <td>${r.proyecto}</td>
+                <td>${r.tipo}</td>
+                <td>${r.marca}</td>
+                <td>${r.modelo}</td>
+                <td>${r.anio}</td>
+                <td>${r.placa}</td>
+                <td>${r.unidad}</td>
+                <td class="editable-cell" contenteditable="true" onblur="actualizarCampoNum('${r.id}', 'lecturaIni', this.textContent)">${r.lecturaIni}</td>
+                <td class="editable-cell" contenteditable="true" onblur="actualizarCampoNum('${r.id}', 'lecturaFin', this.textContent)">${r.lecturaFin}</td>
+                <td class="formula-cell">${r.usoTotal}</td>
+                <td class="editable-cell" contenteditable="true" onblur="actualizarCampoNum('${r.id}', 'horasOp', this.textContent)">${r.horasOp}</td>
+                <td class="editable-cell" contenteditable="true" onblur="actualizarCampoNum('${r.id}', 'hrsMaint', this.textContent)">${r.hrsMaint}</td>
+                <td class="editable-cell" contenteditable="true" onblur="actualizarCampoNum('${r.id}', 'hrsDown', this.textContent)">${r.hrsDown}</td>
+                <td class="editable-cell" contenteditable="true" onblur="actualizarCampoNum('${r.id}', 'nFallas', this.textContent)">${r.nFallas}</td>
+                <td class="formula-cell">${r.tiempoEval}</td>
+                <td class="formula-cell">${r.mtbf.toFixed(2)}</td>
+                <td class="formula-cell">${r.mttr.toFixed(2)}</td>
+                <td>
+                    <button class="btn-delete" title="Editar / Eliminar en Base General" onclick="irAEditarEnBaseGeneral('${r.id}')">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function renderRam() {
+    const tbody = document.getElementById('ramBody');
+    tbody.innerHTML = '';
+    const data = procesarEquipos();
+    const p = obtenerPromedios();
+    
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:30px;color:#999;">
+            No hay equipos para calcular RAM.
+        </td></tr>`;
+        return;
+    }
+    
+    data.forEach(r => {
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${r.id}</strong></td>
+                <td>${r.tipo}</td>
+                <td>${r.placa}</td>
+                <td>${r.mtbf.toFixed(2)}</td>
+                <td>${r.mttr.toFixed(2)}</td>
+                <td>${r.lambda.toFixed(6)}</td>
+                <td>${r.mu.toFixed(6)}</td>
+                <td>${(r.dispTec * 100).toFixed(1)}%</td>
+                <td>${(r.dispOp * 100).toFixed(1)}%</td>
+                <td>${(r.conf50 * 100).toFixed(1)}%</td>
+                <td>${(r.conf100 * 100).toFixed(1)}%</td>
+                <td>${(r.mant5 * 100).toFixed(1)}%</td>
+                <td>${(r.mant10 * 100).toFixed(1)}%</td>
+                <td><span class="badge ${estadoConfiabilidad(r.conf50).toLowerCase()}">${estadoConfiabilidad(r.conf50)}</span></td>
+                <td><span class="badge ${estadoDisponibilidad(r.dispTec).toLowerCase()}">${estadoDisponibilidad(r.dispTec)}</span></td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML += `
+        <tr class="fila-promedio">
+            <td>📊 PROMEDIO</td>
+            <td>--</td><td>--</td>
+            <td>${p.avgMtbf.toFixed(2)}</td>
+            <td>${p.avgMttr.toFixed(2)}</td>
+            <td>${p.avgLambda.toFixed(6)}</td>
+            <td>${p.avgMu.toFixed(6)}</td>
+            <td>${(p.avgDispTec * 100).toFixed(1)}%</td>
+            <td>${(p.avgDispOp * 100).toFixed(1)}%</td>
+            <td>${(p.avgConf50 * 100).toFixed(1)}%</td>
+            <td>${(p.avgConf100 * 100).toFixed(1)}%</td>
+            <td>${(p.avgMant5 * 100).toFixed(1)}%</td>
+            <td>${(p.avgMant10 * 100).toFixed(1)}%</td>
+            <td>--</td><td>--</td>
+        </tr>
+    `;
+}
+
+function renderReferencias() {
+    const p = obtenerPromedios();
+    document.getElementById('refLambda').textContent = p.avgLambda.toFixed(6);
+    document.getElementById('refMu').textContent = p.avgMu.toFixed(6);
+
+    const confBody = document.getElementById('confBody');
+    confBody.innerHTML = '';
+    [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].forEach(t => {
+        const val = calcConfiabilidad(p.avgLambda, t);
+        confBody.innerHTML += `<tr><td>${t}</td><td>${val.toFixed(6)}</td></tr>`;
+    });
+
+    const mantBody = document.getElementById('mantBody');
+    mantBody.innerHTML = '';
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(t => {
+        const val = calcMantenibilidad(p.avgMu, t);
+        mantBody.innerHTML += `<tr><td>${t}</td><td>${val.toFixed(6)}</td></tr>`;
+    });
+}
+
+function renderHistorial() {
+    const grid = document.getElementById('historialGrid');
+    const search = document.getElementById('historialSearch')?.value.toLowerCase() || '';
+    
+    let filtered = historial;
+    if (search) {
+        filtered = historial.filter(h => 
+            h.titulo.toLowerCase().includes(search) ||
+            h.fecha.toLowerCase().includes(search) ||
+            h.mes.toLowerCase().includes(search)
+        );
+    }
+    
+    document.getElementById('historialCount').textContent = `Total: ${filtered.length} reportes`;
+    
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:35px;color:#999;">
+                <i class="fas fa-history" style="font-size:42px;margin-bottom:12px;display:block;"></i>
+                <p>No hay reportes en el historial</p>
+                <p style="font-size:12px;">Exporta un PDF para guardarlo automáticamente</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = filtered.map((h, idx) => {
+        const realIdx = historial.indexOf(h);
+        return `
+        <div class="historial-card" onclick="verHistorial(${realIdx})">
+            <div class="fecha">
+                <i class="fas fa-calendar-alt" style="color:#f57c00;"></i>
+                ${h.fecha}
+            </div>
+            <div class="titulo">${h.titulo}</div>
+            <div class="stats">
+                <span><i class="fas fa-tag"></i> ${h.mes}</span>
+                <span><i class="fas fa-cubes"></i> ${h.totalEquipos} equipos</span>
+                <span><i class="fas fa-check-circle" style="color:#2e7d32;"></i> ${(h.dispTec * 100).toFixed(1)}%</span>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn btn-info" style="font-size:11px;padding:5px 12px;" onclick="event.stopPropagation();descargarHistorial(${realIdx})">
+                    <i class="fas fa-download"></i> PDF
+                </button>
+                <button class="btn btn-danger" style="font-size:11px;padding:5px 12px;" onclick="event.stopPropagation();eliminarHistorial(${realIdx})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `}).join('');
+}
+
+// ================================================================
+// GRÁFICAS
+// ================================================================
+function inicializarGraficas() {
+    charts.disp = new Chart(document.getElementById('chartDisp').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'Disponibilidad Técnica', data: [], backgroundColor: 'rgba(26,35,126,0.8)', borderColor: '#1a237e', borderWidth: 2 },
+                { label: 'Disponibilidad Operativa', data: [], backgroundColor: 'rgba(198,40,40,0.8)', borderColor: '#c62828', borderWidth: 2 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: 'Disponibilidad por Equipo', font: { size: 15, weight: '700' } },
+                legend: { position: 'right', labels: { boxWidth: 14, font: { size: 11 } } }
+            },
+            scales: {
+                x: { ticks: { font: { size: 8 }, maxRotation: 45, minRotation: 45 }, grid: { display: false } },
+                y: { min: 0, max: 100, ticks: { stepSize: 20, callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,0.05)' } }
+            }
+        }
+    });
+
+    charts.mttr = new Chart(document.getElementById('chartMttr').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{ label: 'MTTR (h)', data: [], backgroundColor: 'rgba(198,40,40,0.8)', borderColor: '#c62828', borderWidth: 2 }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { title: { display: true, text: 'Tiempo Medio de Reparación (MTTR)', font: { size: 15, weight: '700' } }, legend: { display: false } },
+            scales: {
+                x: { min: 0, grid: { color: 'rgba(0,0,0,0.05)' } },
+                y: { ticks: { font: { size: 8 } }, grid: { display: false } }
+            }
+        }
+    });
+
+    charts.conf = new Chart(document.getElementById('chartConf').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'Conf. (50h)', data: [], backgroundColor: 'rgba(106,27,154,0.8)', borderColor: '#6a1b9a', borderWidth: 2 },
+                { label: 'Conf. (100h)', data: [], backgroundColor: 'rgba(176,149,201,0.8)', borderColor: '#b095c9', borderWidth: 2 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: 'Confiabilidad Comparativa', font: { size: 15, weight: '700' } },
+                legend: { position: 'right', labels: { boxWidth: 14, font: { size: 11 } } }
+            },
+            scales: {
+                x: { ticks: { font: { size: 8 }, maxRotation: 45, minRotation: 45 }, grid: { display: false } },
+                y: { min: 0, max: 100, ticks: { stepSize: 10, callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,0.05)' } }
+            }
+        }
+    });
+
+    charts.curvas = new Chart(document.getElementById('chartCurvas').getContext('2d'), {
+        type: 'line',
+        data: {
+            datasets: [
+                { 
+                    label: 'Confiabilidad R(t)', 
+                    data: [], 
+                    borderColor: '#c62828', 
+                    backgroundColor: 'rgba(198,40,40,0.1)',
+                    borderWidth: 3, 
+                    pointRadius: 3,
+                    tension: 0.4,
+                    fill: true,
+                    xAxisID: 'xRed'
+                },
+                { 
+                    label: 'Mantenibilidad M(t)', 
+                    data: [], 
+                    borderColor: '#0288d1', 
+                    backgroundColor: 'rgba(2,136,209,0.1)',
+                    borderWidth: 3, 
+                    pointRadius: 3,
+                    tension: 0.4,
+                    fill: true,
+                    xAxisID: 'xBlue'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: 'Curvas de Confiabilidad y Mantenibilidad', font: { size: 15, weight: '700' } },
+                legend: { position: 'right', labels: { boxWidth: 18, font: { size: 11 } } }
+            },
+            scales: {
+                xBlue: {
+                    type: 'category',
+                    labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    position: 'bottom',
+                    ticks: { color: '#000', font: { size: 9 } },
+                    title: { display: true, text: 'Tiempo de Reparación (horas)', color: '#000', font: { size: 11 } }
+                },
+                xRed: {
+                    type: 'category',
+                    labels: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+                    position: 'top',
+                    ticks: { color: '#c62828', font: { size: 9 } }
+                },
+                y: {
+                    min: 0, max: 1.1,
+                    ticks: { stepSize: 0.1, callback: v => (v*100).toFixed(0) + '%', font: { size: 9 } },
+                    title: { display: true, text: 'Probabilidad (%)', color: '#000', font: { size: 11 } },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                }
+            }
+        }
+    });
+}
+
+function actualizarGraficas() {
+    const data = procesarEquipos();
+    const promedios = obtenerPromedios();
+    const labels = data.map(r => `${r.tipo}\n${r.placa}`);
+
+    charts.disp.data.labels = labels;
+    charts.disp.data.datasets[0].data = data.map(r => (r.dispTec * 100).toFixed(1));
+    charts.disp.data.datasets[1].data = data.map(r => (r.dispOp * 100).toFixed(1));
+    charts.disp.update();
+
+    charts.mttr.data.labels = labels;
+    charts.mttr.data.datasets[0].data = data.map(r => r.mttr.toFixed(1));
+    charts.mttr.update();
+
+    charts.conf.data.labels = labels;
+    charts.conf.data.datasets[0].data = data.map(r => (r.conf50 * 100).toFixed(1));
+    charts.conf.data.datasets[1].data = data.map(r => (r.conf100 * 100).toFixed(1));
+    charts.conf.update();
+
+    charts.curvas.data.datasets[0].data = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(t => calcConfiabilidad(promedios.avgLambda, t));
+    charts.curvas.data.datasets[1].data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(t => calcMantenibilidad(promedios.avgMu, t));
+    charts.curvas.update();
+}
+
+// ================================================================
+// ACTUALIZACIONES
+// ================================================================
+function actualizarKPIs() {
+    const p = obtenerPromedios();
+    document.getElementById('kpiDt').textContent = (p.avgDispTec * 100).toFixed(1) + '%';
+    document.getElementById('kpiMtbf').textContent = p.avgMtbf.toFixed(1);
+    document.getElementById('kpiMttr').textContent = p.avgMttr.toFixed(2);
+    document.getElementById('kpiConf').textContent = (p.avgConf50 * 100).toFixed(1) + '%';
+    
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    document.getElementById('kpiMes').textContent = meses[new Date().getMonth()] + ' ' + new Date().getFullYear();
+    document.getElementById('kpiTotalEquipos').textContent = equipos.length;
+}
+
+function actualizarTodo() {
+    actualizarKPIs();
+    renderRam();
+    renderReferencias();
+    if (charts.disp) actualizarGraficas();
+    filtrarEquipos();
+    renderHistorial();
+}
+
+// ================================================================
+// MANIPULACIÓN DE DATOS (con guardado en Firestore)
+// ================================================================
+async function actualizarCampoNum(equipoId, campo, valor) {
+    const num = parseFloat(valor);
+    if (isNaN(num)) return;
+    
+    // Actualizar localmente para UI inmediata
+    const idx = equipos.findIndex(e => e.id === equipoId);
+    if (idx !== -1) equipos[idx][campo] = num;
+    
+    // Refrescar UI inmediatamente
+    actualizarTodo();
+    
+    // Guardar solo el campo kpis_* correspondiente en Firestore
+    const mapa = {
+        lecturaIni: 'kpis_lecturaIni',
+        lecturaFin: 'kpis_lecturaFin',
+        horasOp: 'kpis_horasOp',
+        hrsMaint: 'kpis_hrsMaint',
+        hrsDown: 'kpis_hrsDown',
+        nFallas: 'kpis_nFallas'
+    };
+    
+    const campoFirestore = mapa[campo];
+    if (campoFirestore) {
+        await guardarCamposKPIs(equipoId, { [campoFirestore]: num });
+    }
+}
+
+// ================================================================
+// IMPORTAR EXCEL
+// ================================================================
+function mostrarModalImportar() {
+    document.getElementById('modalImportar').classList.add('active');
+    document.getElementById('importPreview').style.display = 'none';
+    document.getElementById('importProgress').style.display = 'none';
+    document.getElementById('fileInput').value = '';
+    datosImportados = null;
+}
+
+function cerrarModalImportar() {
+    document.getElementById('modalImportar').classList.remove('active');
+}
+
+function procesarExcel(file) {
+    if (!file) return;
+    
+    document.getElementById('importProgress').style.display = 'block';
+    document.getElementById('importPreview').style.display = 'none';
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+            
+            if (jsonData.length === 0) {
+                showToast('❌ El archivo está vacío', 'error');
+                document.getElementById('importProgress').style.display = 'none';
+                return;
+            }
+            
+            const headers = Object.keys(jsonData[0]);
+            const mapeo = {
+                id: headers.find(h => /id/i.test(h)),
+                tipo: headers.find(h => /tipo|equipo|maquina/i.test(h)),
+                marca: headers.find(h => /marca|brand/i.test(h)),
+                modelo: headers.find(h => /modelo|model/i.test(h)),
+                anio: headers.find(h => /año|ano|year|fabricacion/i.test(h)),
+                placa: headers.find(h => /placa|serie|serie\/placa|patente/i.test(h)),
+                unidad: headers.find(h => /unidad.*medida|medida/i.test(h)),
+                lecturaIni: headers.find(h => /lectura.*ini|ini.*lectura|inicial/i.test(h)),
+                lecturaFin: headers.find(h => /lectura.*fin|fin.*lectura|final/i.test(h)),
+                horasOp: headers.find(h => /horas.*op|op.*horas|operativas|horas operativas/i.test(h)),
+                hrsMaint: headers.find(h => /maint.*prog|prog.*maint|horas.*maint|mantenimiento.*programado|prog/i.test(h)),
+                hrsDown: headers.find(h => /parada.*fallas|down|horas.*parada|fallas/i.test(h)),
+                nFallas: headers.find(h => /fallas|n.*falla|num.*falla/i.test(h))
+            };
+            
+            datosImportados = jsonData.map(row => {
+                const getNum = (key) => {
+                    if (!key) return 0;
+                    const val = row[key];
+                    if (typeof val === 'number') return val;
+                    if (typeof val === 'string') {
+                        const cleaned = val.replace(/[^0-9.,]/g, '').replace(',', '.');
+                        return parseFloat(cleaned) || 0;
+                    }
+                    return 0;
+                };
+                
+                const getStr = (key, def = '') => {
+                    if (!key) return def;
+                    const val = row[key];
+                    return val !== undefined && val !== null ? String(val).trim() : def;
+                };
+                
+                const equipo = {
+                    id: getStr(mapeo.id, `EQ-${String(contadorId++).padStart(3, '0')}`),
+                    proyecto: "CORREDOR VIAL CUTERVO - CUYCA",
+                    tipo: getStr(mapeo.tipo, "EQUIPO"),
+                    marca: getStr(mapeo.marca, "GENERICO"),
+                    modelo: getStr(mapeo.modelo, "V1"),
+                    anio: parseInt(getNum(mapeo.anio)) || 2024,
+                    placa: getStr(mapeo.placa, "PROV-00"),
+                    unidad: getStr(mapeo.unidad, "HR"),
+                    lecturaIni: getNum(mapeo.lecturaIni),
+                    lecturaFin: getNum(mapeo.lecturaFin) || getNum(mapeo.lecturaIni) + 100,
+                    horasOp: getNum(mapeo.horasOp) || 100,
+                    hrsMaint: getNum(mapeo.hrsMaint),
+                    hrsDown: getNum(mapeo.hrsDown),
+                    nFallas: parseInt(getNum(mapeo.nFallas)) || 0
+                };
+                return equipo;
+            });
+            
+            document.getElementById('importProgress').style.display = 'none';
+            document.getElementById('importPreview').style.display = 'block';
+            
+            let previewHTML = `<strong>📊 ${datosImportados.length} equipos encontrados</strong><br><br>`;
+            previewHTML += '<div style="max-height:150px;overflow-y:auto;">';
+            previewHTML += '<table style="width:100%;font-size:11px;border-collapse:collapse;">';
+            previewHTML += '<tr style="background:#1a237e;color:white;">';
+            previewHTML += '<th style="padding:3px 6px;">ID</th><th style="padding:3px 6px;">Tipo</th><th style="padding:3px 6px;">Placa</th>';
+            previewHTML += '<th style="padding:3px 6px;">Horas Op</th><th style="padding:3px 6px;">Maint Prog</th>';
+            previewHTML += '<th style="padding:3px 6px;">Parada</th><th style="padding:3px 6px;">Fallas</th></tr>';
+            datosImportados.slice(0, 10).forEach(r => {
+                previewHTML += `<tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.id}</td>`;
+                previewHTML += `<td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.tipo}</td>`;
+                previewHTML += `<td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.placa}</td>`;
+                previewHTML += `<td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.horasOp}</td>`;
+                previewHTML += `<td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.hrsMaint}</td>`;
+                previewHTML += `<td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.hrsDown}</td>`;
+                previewHTML += `<td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.nFallas}</td></tr>`;
+            });
+            if (datosImportados.length > 10) {
+                previewHTML += `<tr><td colspan="7" style="padding:6px;text-align:center;color:#999;">... y ${datosImportados.length - 10} más</td></tr>`;
+            }
+            previewHTML += '</table></div>';
+            document.getElementById('previewData').innerHTML = previewHTML;
+            
+        } catch (error) {
+            console.error(error);
+            showToast('❌ Error al leer el archivo', 'error');
+            document.getElementById('importProgress').style.display = 'none';
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+async function confirmarImportacion() {
+    if (!datosImportados || datosImportados.length === 0) {
+        showToast('❌ No hay datos para importar', 'error');
+        return;
+    }
+    
+    if (!usuarioActual) {
+        showToast('❌ No hay sesión activa', 'error');
+        return;
+    }
+    
+    try {
+        showLoading('Importando equipos...');
+        
+        // Obtener items actuales
+        const docRef = db.collection('usuarios').doc(usuarioActual.uid)
+            .collection('appData').doc('equipos_propios');
+        
+        const docSnap = await docRef.get();
+        const items = docSnap.exists ? (docSnap.data().items || []) : [];
+        
+        // Agregar los nuevos con prefijo kpis_
+        datosImportados.forEach(eq => {
+            const nuevo = {
+                id: eq.id,
+                nombre: eq.tipo,
+                marca: eq.marca,
+                modelo: eq.modelo,
+                año: eq.anio,
+                placa_serie: eq.placa,
+                proyecto_actual: eq.proyecto,
+                tipo_servicio: eq.unidad,
+                // Campos vacíos de Base General (para que el usuario los llene)
+                tipo_equipo: '',
+                estado: '',
+                // Campos exclusivos de KPIs
+                kpis_lecturaIni: eq.lecturaIni,
+                kpis_lecturaFin: eq.lecturaFin,
+                kpis_horasOp: eq.horasOp,
+                kpis_hrsMaint: eq.hrsMaint,
+                kpis_hrsDown: eq.hrsDown,
+                kpis_nFallas: eq.nFallas,
+                creadoEn: new Date().toISOString()
+            };
+            items.push(nuevo);
+        });
+        
+        await docRef.set({
+            items: items,
+            ultimaActualizacion: new Date()
+        });
+        
+        hideLoading();
+        cerrarModalImportar();
+        showToast(`✅ ${datosImportados.length} equipos importados`, 'success');
+        datosImportados = null;
+        
+    } catch (error) {
+        console.error('Error importando:', error);
+        hideLoading();
+        showToast('❌ Error al importar', 'error');
+    }
+}
+
+function cancelarImportacion() {
+    datosImportados = null;
+    document.getElementById('importPreview').style.display = 'none';
+    showToast('Importación cancelada', 'info');
+}
+
+// ================================================================
+// EDITAR TÍTULO Y LOGO
+// ================================================================
+function editarTitulo() {
+    document.getElementById('inputTitulo').value = document.getElementById('tituloPrincipal').textContent;
+    document.getElementById('inputSubtitulo').value = document.getElementById('subtituloPrincipal').textContent;
+    
+    const logoIcon = document.getElementById('logoIconModal');
+    const logoPreviewModal = document.getElementById('logoPreviewModal');
+    
+    if (config.logo) {
+        logoPreviewModal.src = config.logo;
+        logoPreviewModal.style.display = 'block';
+        logoIcon.style.display = 'none';
+    } else {
+        logoPreviewModal.style.display = 'none';
+        logoIcon.style.display = 'block';
+    }
+    
+    document.getElementById('modalEditarTitulo').classList.add('active');
+}
+
+function cerrarModalTitulo() {
+    document.getElementById('modalEditarTitulo').classList.remove('active');
+}
+
+function guardarTitulo() {
+    const titulo = document.getElementById('inputTitulo').value.trim() || '📊 Dashboard RAM';
+    const subtitulo = document.getElementById('inputSubtitulo').value.trim() || 'Equipos Propios · Monitoreo en Tiempo Real';
+    
+    document.getElementById('tituloPrincipal').textContent = titulo;
+    document.getElementById('subtituloPrincipal').textContent = subtitulo;
+    
+    config.titulo = titulo;
+    config.subtitulo = subtitulo;
+    localStorage.setItem('ramConfigKPIs', JSON.stringify(config));
+    
+    cerrarModalTitulo();
+    showToast('✅ Título actualizado', 'success');
+}
+
+function cambiarLogo(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        config.logo = dataUrl;
+        localStorage.setItem('ramConfigKPIs', JSON.stringify(config));
+        
+        document.getElementById('logoPreview').src = dataUrl;
+        document.getElementById('logoPreview').style.display = 'block';
+        document.getElementById('logoIcon').style.display = 'none';
+        
+        showToast('✅ Logo actualizado (solo en KPIs)', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function cambiarLogoModal(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        document.getElementById('logoPreviewModal').src = dataUrl;
+        document.getElementById('logoPreviewModal').style.display = 'block';
+        document.getElementById('logoIconModal').style.display = 'none';
+        
+        config.logo = dataUrl;
+        localStorage.setItem('ramConfigKPIs', JSON.stringify(config));
+        
+        document.getElementById('logoPreview').src = dataUrl;
+        document.getElementById('logoPreview').style.display = 'block';
+        document.getElementById('logoIcon').style.display = 'none';
+        
+        showToast('✅ Logo actualizado', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function eliminarLogo() {
+    delete config.logo;
+    localStorage.setItem('ramConfigKPIs', JSON.stringify(config));
+    
+    document.getElementById('logoPreview').style.display = 'none';
+    document.getElementById('logoIcon').style.display = 'block';
+    document.getElementById('logoPreviewModal').style.display = 'none';
+    document.getElementById('logoIconModal').style.display = 'block';
+    
+    showToast('🗑️ Logo eliminado', 'info');
+}
+
+// ================================================================
+// EXPORTAR PDF (con historial)
+// ================================================================
+async function exportarPDF() {
+    showToast('📄 Generando PDF completo...', 'info');
+    
+    try {
+        const titulo = document.getElementById('tituloPrincipal').textContent;
+        const subtitulo = document.getElementById('subtituloPrincipal').textContent;
+        const logoUrl = config.logo || '';
+        const p = obtenerPromedios();
+        const data = procesarEquipos();
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const mesActual = meses[new Date().getMonth()] + ' ' + new Date().getFullYear();
+        
+        const chartIds = ['chartDisp', 'chartMttr', 'chartConf', 'chartCurvas'];
+        const chartImages = {};
+        
+        for (const id of chartIds) {
+            const canvas = document.getElementById(id);
+            if (canvas) {
+                chartImages[id] = canvas.toDataURL('image/png', 0.9);
+            }
+        }
+        
+        const element = document.createElement('div');
+        element.style.cssText = 'padding:12px;background:white;font-family:Inter,sans-serif;';
+        element.innerHTML = `
+            <style>
+                @page { margin: 5mm; }
+                * { box-sizing: border-box; }
+                body { font-family: 'Inter', sans-serif; }
+                .pdf-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border-bottom: 3px solid #1a237e; padding-bottom: 8px; }
+                .pdf-logo { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid #1a237e; flex-shrink: 0; }
+                .pdf-logo img { width: 100%; height: 100%; object-fit: cover; }
+                .pdf-title { color: #1a237e; font-size: 16px; font-weight: 800; margin: 0; }
+                .pdf-subtitle { color: #666; font-size: 10px; margin: 1px 0 0; }
+                .pdf-date { color: #999; font-size: 8px; margin: 1px 0 0; }
+                .pdf-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
+                .pdf-kpi { background: #f5f5f9; padding: 5px 8px; border-radius: 4px; text-align: center; border-left: 3px solid #1a237e; }
+                .pdf-kpi-label { font-size: 7px; color: #666; text-transform: uppercase; font-weight: 700; }
+                .pdf-kpi-value { font-size: 14px; font-weight: 800; color: #1a237e; }
+                .pdf-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+                .pdf-chart { border: 1px solid #eee; border-radius: 4px; padding: 4px; background: white; }
+                .pdf-chart img { width: 100%; height: auto; max-height: 100px; object-fit: contain; }
+                .pdf-section-title { color: #1a237e; font-size: 11px; font-weight: 700; margin: 6px 0 4px; border-bottom: 2px solid #e8eaf6; padding-bottom: 3px; }
+                .pdf-table { width: 100%; border-collapse: collapse; font-size: 6.5px; margin-bottom: 6px; }
+                .pdf-table th { background: #1a237e; color: white; padding: 2px 3px; text-align: left; font-weight: 600; font-size: 6px; text-transform: uppercase; }
+                .pdf-table td { padding: 1.5px 3px; border-bottom: 1px solid #eee; }
+                .pdf-table tr:nth-child(even) td { background: #fafafa; }
+                .pdf-table .highlight td { background: #1a237e !important; color: white !important; font-weight: 700; }
+                .pdf-footer { text-align: center; color: #999; font-size: 7px; border-top: 1px solid #eee; padding-top: 5px; margin-top: 6px; }
+                .pdf-badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 5.5px; font-weight: 700; text-transform: uppercase; }
+                .pdf-badge.alta { background: #c8e6c9; color: #1b5e20; }
+                .pdf-badge.media { background: #fff9c4; color: #f57f17; }
+                .pdf-badge.critica { background: #ffcdd2; color: #b71c1c; }
+                .pdf-badge.optima { background: #c8e6c9; color: #1b5e20; }
+                .pdf-badge.aceptable { background: #fff9c4; color: #f57f17; }
+                .pdf-badge.deficiente { background: #ffcdd2; color: #b71c1c; }
+                .pdf-ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+                .pdf-ref-box { border: 1px solid #eee; border-radius: 4px; padding: 6px; }
+                .pdf-ref-box h4 { color: #1a237e; font-size: 9px; margin: 0 0 3px; }
+                .pdf-ref-info { background: #e8eaf6; padding: 2px 6px; border-radius: 3px; margin-bottom: 3px; font-size: 7px; }
+            </style>
+            
+            <div class="pdf-header">
+                ${logoUrl ? `<div class="pdf-logo"><img src="${logoUrl}"></div>` : ''}
+                <div>
+                    <div class="pdf-title">${titulo}</div>
+                    <div class="pdf-subtitle">${subtitulo}</div>
+                    <div class="pdf-date">📅 ${new Date().toLocaleString()} · ${mesActual} · ${data.length} equipos</div>
+                </div>
+            </div>
+            
+            <div class="pdf-kpis">
+                <div class="pdf-kpi">
+                    <div class="pdf-kpi-label">Disponibilidad Técnica</div>
+                    <div class="pdf-kpi-value">${(p.avgDispTec * 100).toFixed(1)}%</div>
+                </div>
+                <div class="pdf-kpi">
+                    <div class="pdf-kpi-label">MTBF Promedio</div>
+                    <div class="pdf-kpi-value">${p.avgMtbf.toFixed(1)}h</div>
+                </div>
+                <div class="pdf-kpi">
+                    <div class="pdf-kpi-label">MTTR Promedio</div>
+                    <div class="pdf-kpi-value">${p.avgMttr.toFixed(2)}h</div>
+                </div>
+                <div class="pdf-kpi">
+                    <div class="pdf-kpi-label">Confiabilidad (50h)</div>
+                    <div class="pdf-kpi-value">${(p.avgConf50 * 100).toFixed(1)}%</div>
+                </div>
+            </div>
+            
+            <div class="pdf-section-title">📊 Gráficas de Desempeño</div>
+            <div class="pdf-charts">
+                <div class="pdf-chart"><img src="${chartImages.chartDisp}"></div>
+                <div class="pdf-chart"><img src="${chartImages.chartMttr}"></div>
+                <div class="pdf-chart"><img src="${chartImages.chartConf}"></div>
+                <div class="pdf-chart"><img src="${chartImages.chartCurvas}"></div>
+            </div>
+            
+            <div class="pdf-section-title">📋 Registro de Equipos</div>
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Placa</th>
+                        <th>Horas Op</th><th>Maint Prog</th><th>Parada</th><th>Fallas</th>
+                        <th>MTBF</th><th>MTTR</th><th>Disp.Tec</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(r => `
+                        <tr>
+                            <td>${r.id}</td>
+                            <td>${r.tipo}</td>
+                            <td>${r.marca}</td>
+                            <td>${r.modelo}</td>
+                            <td>${r.placa}</td>
+                            <td style="text-align:right;">${r.horasOp}</td>
+                            <td style="text-align:right;">${r.hrsMaint}</td>
+                            <td style="text-align:right;">${r.hrsDown}</td>
+                            <td style="text-align:right;">${r.nFallas}</td>
+                            <td style="text-align:right;">${r.mtbf.toFixed(2)}</td>
+                            <td style="text-align:right;">${r.mttr.toFixed(2)}</td>
+                            <td style="text-align:right;">${(r.dispTec*100).toFixed(1)}%</td>
+                        </tr>
+                    `).join('')}
+                    <tr class="highlight">
+                        <td colspan="4" style="font-weight:700;">📊 PROMEDIO</td>
+                        <td>--</td>
+                        <td style="text-align:right;">${data.reduce((s,r) => s + r.horasOp, 0).toFixed(0)}</td>
+                        <td style="text-align:right;">${data.reduce((s,r) => s + r.hrsMaint, 0).toFixed(1)}</td>
+                        <td style="text-align:right;">${data.reduce((s,r) => s + r.hrsDown, 0).toFixed(1)}</td>
+                        <td style="text-align:right;">${data.reduce((s,r) => s + r.nFallas, 0)}</td>
+                        <td style="text-align:right;">${p.avgMtbf.toFixed(2)}</td>
+                        <td style="text-align:right;">${p.avgMttr.toFixed(2)}</td>
+                        <td style="text-align:right;">${(p.avgDispTec*100).toFixed(1)}%</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="pdf-section-title">🧮 Cálculos RAM</div>
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Equipo</th><th>Placa</th><th>MTBF</th><th>MTTR</th>
+                        <th>λ</th><th>μ</th><th>Disp.Téc</th><th>Conf.50h</th><th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(r => `
+                        <tr>
+                            <td>${r.id}</td>
+                            <td>${r.tipo}</td>
+                            <td>${r.placa}</td>
+                            <td style="text-align:right;">${r.mtbf.toFixed(2)}</td>
+                            <td style="text-align:right;">${r.mttr.toFixed(2)}</td>
+                            <td style="text-align:right;">${r.lambda.toFixed(6)}</td>
+                            <td style="text-align:right;">${r.mu.toFixed(6)}</td>
+                            <td style="text-align:right;">${(r.dispTec*100).toFixed(1)}%</td>
+                            <td style="text-align:right;">${(r.conf50*100).toFixed(1)}%</td>
+                            <td><span class="pdf-badge ${estadoDisponibilidad(r.dispTec).toLowerCase()}">${estadoDisponibilidad(r.dispTec)}</span></td>
+                        </tr>
+                    `).join('')}
+                    <tr class="highlight">
+                        <td colspan="2">📊 PROMEDIO</td>
+                        <td>--</td>
+                        <td style="text-align:right;">${p.avgMtbf.toFixed(2)}</td>
+                        <td style="text-align:right;">${p.avgMttr.toFixed(2)}</td>
+                        <td style="text-align:right;">${p.avgLambda.toFixed(6)}</td>
+                        <td style="text-align:right;">${p.avgMu.toFixed(6)}</td>
+                        <td style="text-align:right;">${(p.avgDispTec*100).toFixed(1)}%</td>
+                        <td style="text-align:right;">${(p.avgConf50*100).toFixed(1)}%</td>
+                        <td>--</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="pdf-section-title">📊 Tablas de Referencia</div>
+            <div class="pdf-ref-grid">
+                <div class="pdf-ref-box">
+                    <h4>🔹 Confiabilidad R(t)</h4>
+                    <div class="pdf-ref-info">λ: ${p.avgLambda.toFixed(6)} 1/h</div>
+                    <table class="pdf-table" style="font-size:6px;">
+                        <thead><tr><th>Tiempo</th><th>Confiabilidad</th></tr></thead>
+                        <tbody>
+                            ${[0,10,20,30,40,50,60,70,80,90,100].map(t => `
+                                <tr><td>${t}</td><td>${calcConfiabilidad(p.avgLambda, t).toFixed(6)}</td></tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pdf-ref-box">
+                    <h4>🔸 Mantenibilidad M(t)</h4>
+                    <div class="pdf-ref-info">μ: ${p.avgMu.toFixed(6)} 1/h</div>
+                    <table class="pdf-table" style="font-size:6px;">
+                        <thead><tr><th>Tiempo</th><th>Mantenibilidad</th></tr></thead>
+                        <tbody>
+                            ${[0,1,2,3,4,5,6,7,8,9,10].map(t => `
+                                <tr><td>${t}</td><td>${calcMantenibilidad(p.avgMu, t).toFixed(6)}</td></tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="pdf-footer">
+                Reporte generado automáticamente · ${new Date().toLocaleString()} · Total ${data.length} equipos
+            </div>
+        `;
+
+        const opt = {
+            margin: [4, 4, 4, 4],
+            filename: `Reporte_RAM_${new Date().toISOString().slice(0,10)}.pdf`,
+            image: { type: 'jpeg', quality: 0.92 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, width: 780, height: 1080 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        await html2pdf().set(opt).from(element).save();
+        
+        // Guardar en historial
+        historial.push({
+            id: Date.now(),
+            fecha: new Date().toLocaleString(),
+            mes: mesActual,
+            titulo: `Reporte RAM - ${mesActual}`,
+            totalEquipos: equipos.length,
+            dispTec: p.avgDispTec,
+            mtbf: p.avgMtbf,
+            mttr: p.avgMttr,
+            conf50: p.avgConf50
+        });
+        
+        if (historial.length > 50) historial = historial.slice(-50);
+        
+        localStorage.setItem('ramHistorial', JSON.stringify(historial));
+        renderHistorial();
+        showToast('✅ PDF generado con gráficas y guardado en historial', 'success');
+        
+    } catch (error) {
+        console.error('Error al generar PDF:', error);
+        showToast('❌ Error al generar PDF', 'error');
+    }
+}
+
+// ================================================================
+// HISTORIAL
+// ================================================================
+function filtrarHistorial() { renderHistorial(); }
+function verHistorial(idx) {
+    const h = historial[idx];
+    if (!h) return;
+    showToast(`📄 ${h.titulo} - ${h.fecha}`, 'info');
+}
+function descargarHistorial(idx) {
+    const h = historial[idx];
+    if (!h) return;
+    showToast('📄 Descargando PDF del historial...', 'info');
+    exportarPDF();
+}
+function eliminarHistorial(idx) {
+    if (confirm('¿Eliminar este reporte del historial?')) {
+        historial.splice(idx, 1);
+        localStorage.setItem('ramHistorial', JSON.stringify(historial));
+        renderHistorial();
+        showToast('🗑️ Reporte eliminado', 'info');
+    }
+}
+function limpiarHistorial() {
+    if (historial.length === 0) {
+        showToast('No hay reportes en el historial', 'info');
+        return;
+    }
+    if (confirm('¿Eliminar todo el historial?')) {
+        historial = [];
+        localStorage.setItem('ramHistorial', JSON.stringify(historial));
+        renderHistorial();
+        showToast('🗑️ Historial limpiado', 'info');
+    }
+}
+
+// ================================================================
+// UTILIDADES
+// ================================================================
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        showToast('📺 Pantalla completa', 'info');
+    } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+    }
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    document.querySelector('.btn-purple i').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    showToast(isDark ? '🌙 Modo oscuro' : '☀️ Modo claro', 'info');
+}
+
+function exportarCSV() {
+    let csv = 'ID,Proyecto,Tipo,Marca,Modelo,Año,Placa,Unidad,HorasOp,MaintProg,ParadaFallas,N°Fallas,MTBF,MTTR,DispTec,Conf50\n';
+    procesarEquipos().forEach(r => {
+        csv += `"${r.id}","${r.proyecto}","${r.tipo}","${r.marca}","${r.modelo}",${r.anio},"${r.placa}","${r.unidad}",${r.horasOp},${r.hrsMaint},${r.hrsDown},${r.nFallas},${r.mtbf.toFixed(2)},${r.mttr.toFixed(2)},${(r.dispTec*100).toFixed(1)}%,${(r.conf50*100).toFixed(1)}%\n`;
+    });
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Reporte_RAM_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    showToast('📥 CSV exportado', 'success');
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const icon = toast.querySelector('i');
+    
+    toastMessage.textContent = message;
+    
+    const colors = {
+        success: '#1a237e',
+        info: '#0288d1',
+        error: '#c62828',
+        warning: '#f57c00'
+    };
+    toast.style.background = colors[type] || colors.success;
+    icon.className = type === 'success' ? 'fas fa-check-circle' : 
+                    type === 'info' ? 'fas fa-info-circle' :
+                    type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-warning';
+    
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// ================================================================
+// TABS
+// ================================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+});
+
+// Drag and drop
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
+                procesarExcel(file);
+            } else {
+                showToast('❌ Por favor, sube un archivo Excel (.xlsx o .xls)', 'error');
+            }
+        });
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalImportar();
+            cerrarModalTitulo();
+        }
+    });
+});
+
+// ================================================================
+// AUTENTICACIÓN + CARGA INICIAL
+// ================================================================
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        usuarioActual = user;
+        console.log('✅ KPIs - Usuario autenticado:', user.email);
+        
+        // Cargar perfil del usuario (para logo)
+        try {
+            const perfilDoc = await db.collection('usuarios').doc(user.uid).get();
+            if (perfilDoc.exists) usuarioPerfil = perfilDoc.data();
+            else usuarioPerfil = {};
+            
+            // Si hay logo del perfil, usarlo por defecto (si no hay logo local en KPIs)
+            if (!config.logo && usuarioPerfil.logoBase64) {
+                document.getElementById('logoPreview').src = usuarioPerfil.logoBase64;
+                document.getElementById('logoPreview').style.display = 'block';
+                document.getElementById('logoIcon').style.display = 'none';
+            }
+        } catch (err) {
+            console.warn('No se pudo cargar el perfil:', err);
+            usuarioPerfil = {};
+        }
+        
+        // Iniciar gráficas y listener
+        inicializarGraficas();
+        iniciarListener();
+        
+    } else {
+        console.log('⚠️ Sin sesión, redirigiendo al index...');
+        sessionStorage.setItem('mantenapp_volviendo_de_modulo', '1');
+        window.location.href = 'index.html';
+    }
+});
+
+// Limpieza al salir
+window.addEventListener('beforeunload', () => {
+    detenerListener();
+});
+
+console.log('✅ KPIs y Análisis - Módulo cargado correctamente');
+</script>
+
+</body>
+</html>

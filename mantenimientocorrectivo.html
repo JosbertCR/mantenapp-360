@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>Mantenimiento Correctivo - MantenApp 360</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html { height: 100%; width: 100%; overscroll-behavior: none; }
+
+        body {
+            background: var(--bg);
+            max-width: 480px;
+            margin: 0 auto;
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 1.05em;
+            position: relative;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+        .app-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+            color: white;
+            padding: 12px 16px;
+            padding-top: calc(12px + env(safe-area-inset-top, 30px));
+            position: sticky; top: 0;
+            z-index: 100;
+            box-shadow: 0 6px 28px rgba(79,70,229,0.4);
+            flex-shrink: 0;
+        }
+
+        .app-header-top {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 4px;
+        }
+
+        .app-header-title {
+            font-size: 0.95em; font-weight: 800;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .app-header-title i { font-size: 1.1em; }
+
+        .app-header-user {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 10px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .header-avatar {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7em; font-weight: 800;
+            background-size: cover; background-position: center;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .app-header-subtitle {
+            font-size: 0.68em; opacity: 0.92;
+            font-weight: 500;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .app-header-subtitle::before {
+            content: ''; width: 6px; height: 6px;
+            border-radius: 50%; background: #10b981;
+        }
+
+        .main-container {
+            padding: 14px;
+            padding-bottom: 30px;
+        }
+
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.78em; font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            margin-bottom: 12px; font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .back-btn:hover {
+            background: #f8fafc; color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .section-title {
+            font-size: 0.78em; font-weight: 800;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+            position: relative; padding-left: 12px;
+        }
+
+        .section-title::before {
+            content: ''; position: absolute;
+            left: 0; top: 50%; transform: translateY(-50%);
+            width: 4px; height: 16px;
+            background: linear-gradient(180deg, #6366f1, #8b5cf6);
+            border-radius: 2px;
+        }
+
+        .section-title i { color: var(--primary); }
+
+        .menu-module-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .menu-module-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-family: inherit;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            min-height: 110px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+
+        .menu-module-btn::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+        }
+
+        .menu-module-btn.menor::before { background: linear-gradient(90deg, #a855f7, #9333ea); }
+        .menu-module-btn.liviano::before { background: linear-gradient(90deg, #06b6d4, #0891b2); }
+        .menu-module-btn.pesado::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .menu-module-btn.repuestos::before { background: linear-gradient(90deg, #10b981, #059669); }
+
+        .menu-module-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .menu-module-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25em; margin-bottom: 8px;
+            color: white;
+        }
+
+        .menu-module-icon.menor { background: linear-gradient(135deg, #a855f7, #9333ea); }
+        .menu-module-icon.liviano { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .menu-module-icon.pesado { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .menu-module-icon.repuestos { background: linear-gradient(135deg, #10b981, #059669); }
+
+        .menu-module-title {
+            font-size: 0.72em; font-weight: 800;
+            color: var(--text); margin-bottom: 2px;
+            line-height: 1.2;
+        }
+
+        .menu-module-count {
+            font-size: 0.6em; color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .search-bar {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 9px 14px;
+            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: var(--shadow-sm);
+            border: 2px solid var(--border);
+            position: relative;
+        }
+
+        .search-bar input {
+            border: none; outline: none; flex: 1;
+            font-size: 0.82em; background: transparent;
+            color: var(--text); font-family: inherit;
+            padding-right: 26px;
+        }
+
+        .search-bar > i.fa-search { color: var(--text-muted); font-size: 0.9em; }
+
+        .search-clear-x {
+            position: absolute; right: 12px; top: 50%;
+            transform: translateY(-50%);
+            width: 22px; height: 22px; border-radius: 50%;
+            border: none; background: #f1f5f9;
+            color: var(--text-secondary);
+            cursor: pointer; display: none;
+            align-items: center; justify-content: center;
+            font-size: 0.7em;
+        }
+
+        .search-clear-x.visible { display: flex; }
+
+        .equipos-lista { display: flex; flex-direction: column; gap: 8px; }
+
+        .equipo-btn {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+            font-family: inherit;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .equipo-btn.liviano { border-left-color: #06b6d4; }
+        .equipo-btn.pesado { border-left-color: #f59e0b; }
+        .equipo-btn.menor { border-left-color: #a855f7; }
+
+        .equipo-btn:hover {
+            transform: translateX(3px);
+            box-shadow: var(--shadow);
+        }
+
+        .equipo-btn-text {
+            font-size: 0.82em;
+            font-weight: 800;
+            color: var(--text);
+            text-transform: uppercase;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .equipo-btn-arrow {
+            color: var(--text-muted);
+            font-size: 0.8em;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 2em; color: var(--primary);
+            opacity: 0.7;
+        }
+
+        .empty-state h3 {
+            font-size: 0.95em; color: var(--text-secondary);
+            margin-bottom: 6px; font-weight: 800;
+        }
+
+        .empty-state p {
+            font-size: 0.8em;
+            line-height: 1.5;
+        }
+
+        .vista { display: none; }
+        .vista.activa { display: block; }
+
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(255,255,255,0.95);
+            display: none; align-items: center; justify-content: center;
+            flex-direction: column; z-index: 2000;
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .loading-spinner {
+            width: 44px; height: 44px;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-text {
+            margin-top: 14px;
+            color: var(--text-secondary);
+            font-size: 0.85em; font-weight: 700;
+        }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: #0f172a; color: white;
+            padding: 12px 20px; border-radius: 30px;
+            font-size: 0.8em; font-weight: 700;
+            z-index: 2000; opacity: 0;
+            transition: all 0.4s;
+            max-width: 90%; text-align: center;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .toast.info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="app-header-top">
+            <div class="app-header-title">
+                <i class="fas fa-wrench"></i>
+                <span>Mantenimiento Correctivo</span>
+            </div>
+            <div class="app-header-user">
+                <div class="header-avatar" id="headerAvatar">?</div>
+            </div>
+        </div>
+        <div class="app-header-subtitle" id="headerSubtitle">Cargando...</div>
+    </div>
+
+    <div class="main-container">
+
+        <button class="back-btn" onclick="volverAlIndex()">
+            <i class="fas fa-arrow-left"></i> Volver al menú
+        </button>
+
+        <div class="vista activa" id="vistaMenuModulo">
+            <div class="section-title">
+                <i class="fas fa-th-large"></i> Selecciona una opción
+            </div>
+
+            <div class="menu-module-grid">
+                <button class="menu-module-btn menor" onclick="abrirVistaEquipos('menor')">
+                    <div class="menu-module-icon menor"><i class="fas fa-tools"></i></div>
+                    <div class="menu-module-title">E. MENOR</div>
+                    <div class="menu-module-count" id="countMenor">0 activos</div>
+                </button>
+                <button class="menu-module-btn liviano" onclick="abrirVistaEquipos('liviano')">
+                    <div class="menu-module-icon liviano"><i class="fas fa-car"></i></div>
+                    <div class="menu-module-title">E. LIVIANO</div>
+                    <div class="menu-module-count" id="countLiviano">0 activos</div>
+                </button>
+                <button class="menu-module-btn pesado" onclick="abrirVistaEquipos('pesado')">
+                    <div class="menu-module-icon pesado"><i class="fas fa-tractor"></i></div>
+                    <div class="menu-module-title">E. PESADO</div>
+                    <div class="menu-module-count" id="countPesado">0 activos</div>
+                </button>
+            </div>
+
+            <div class="menu-module-grid">
+                <button class="menu-module-btn repuestos" onclick="abrirVistaRepuestos()">
+                    <div class="menu-module-icon repuestos"><i class="fas fa-cog"></i></div>
+                    <div class="menu-module-title">MANT. DE REPUESTOS</div>
+                    <div class="menu-module-count" id="countRepuestos">0 registros</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="vista" id="vistaEquipos">
+            <button class="back-btn" onclick="volverAlMenuModulo()">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <div class="section-title">
+                <i class="fas fa-truck-moving" id="iconoVistaEquipos"></i>
+                <span id="tituloVistaEquipos">Equipos</span>
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="inputBusquedaEquipos" placeholder="Buscar equipo..." oninput="filtrarEquipos(); actualizarBotonX('inputBusquedaEquipos', 'clearXEquipos');">
+                <button class="search-clear-x" id="clearXEquipos" onclick="limpiarBusquedaEquipos()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="equipos-lista" id="listaEquipos"></div>
+        </div>
+
+        <div class="vista" id="vistaRepuestos">
+            <button class="back-btn" onclick="volverAlMenuModulo()">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <div class="section-title">
+                <i class="fas fa-cog"></i> Mantenimiento de Repuestos
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="inputBusquedaRepuestos" placeholder="Buscar repuesto..." oninput="filtrarRepuestos(); actualizarBotonX('inputBusquedaRepuestos', 'clearXRepuestos');">
+                <button class="search-clear-x" id="clearXRepuestos" onclick="limpiarBusquedaRepuestos()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="listaRepuestos"></div>
+        </div>
+
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Cargando...</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script>
+    // ================================================================
+    // CONFIGURACIÓN FIREBASE (misma que index.html)
+    // ================================================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyCAxYoYqsssLx00Iat2LwNc_JLaDME-XMc",
+        authDomain: "preventiapps.firebaseapp.com",
+        projectId: "preventiapps",
+        storageBucket: "preventiapps.firebasestorage.app",
+        messagingSenderId: "306941304915",
+        appId: "1:306941304915:web:0f3075bbd6969be07e66a6",
+        measurementId: "G-L9HWLKC6J4"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // ================================================================
+    // ESTADO GLOBAL
+    // ================================================================
+    let usuarioActual = null;
+    let usuarioPerfil = null;
+    let equiposPropios = [];
+    let repuestosCache = [];
+    let tipoActualVista = null;
+    let filtroEquipos = '';
+    let filtroRepuestos = '';
+    let listenerEquiposActivo = null;
+    let listenerRepuestosActivo = null;
+
+    // ================================================================
+    // TOAST
+    // ================================================================
+    function showToast(mensaje, tipo = 'info', duracion = 3000) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        const iconos = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+        toast.innerHTML = `<i class="fas ${iconos[tipo]}"></i><span>${mensaje}</span>`;
+        toast.className = `toast ${tipo} show`;
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => toast.classList.remove('show'), duracion);
+    }
+
+    // ================================================================
+    // LOADING
+    // ================================================================
+    function showLoading(texto = 'Cargando...') {
+        const el = document.getElementById('loadingText');
+        if (el) el.textContent = texto;
+        document.getElementById('loadingOverlay').classList.add('active');
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.remove('active');
+    }
+
+    // ================================================================
+    // HELPERS
+    // ================================================================
+    function escapar(texto) {
+        if (texto === null || texto === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(texto);
+        return div.innerHTML;
+    }
+
+    function actualizarBotonX(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const btn = document.getElementById(btnId);
+        if (!input || !btn) return;
+        if (input.value.trim().length > 0) btn.classList.add('visible');
+        else btn.classList.remove('visible');
+    }
+
+    // ================================================================
+    // NAVEGACIÓN ENTRE VISTAS
+    // ================================================================
+    function mostrarVista(idVista) {
+        document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa'));
+        const vista = document.getElementById(idVista);
+        if (vista) vista.classList.add('activa');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function volverAlMenuModulo() {
+        tipoActualVista = null;
+        filtroEquipos = '';
+        filtroRepuestos = '';
+        const inputEq = document.getElementById('inputBusquedaEquipos');
+        if (inputEq) inputEq.value = '';
+        const inputRep = document.getElementById('inputBusquedaRepuestos');
+        if (inputRep) inputRep.value = '';
+        document.getElementById('clearXEquipos')?.classList.remove('visible');
+        document.getElementById('clearXRepuestos')?.classList.remove('visible');
+        mostrarVista('vistaMenuModulo');
+        actualizarContadores();
+    }
+
+    // ✅ VUELVE AL INDEX SIN FLASH DE LOGIN
+    // Guarda un flag en sessionStorage para que index.html no muestre login
+    // y vaya DIRECTO al menú de módulos.
+    function volverAlIndex() {
+        sessionStorage.setItem('mantenapp_volviendo_de_modulo', '1');
+        window.location.href = 'index.html';
+    }
+
+    // ================================================================
+    // ABRIR VISTA DE EQUIPOS POR TIPO
+    // ================================================================
+    function abrirVistaEquipos(tipo) {
+        tipoActualVista = tipo;
+        filtroEquipos = '';
+
+        const titulos = { menor: 'Equipos Menores', liviano: 'Equipos Livianos', pesado: 'Equipos Pesados' };
+        const iconos = { menor: 'fa-tools', liviano: 'fa-car', pesado: 'fa-tractor' };
+
+        document.getElementById('tituloVistaEquipos').textContent = titulos[tipo];
+        document.getElementById('iconoVistaEquipos').className = 'fas ' + iconos[tipo];
+
+        const input = document.getElementById('inputBusquedaEquipos');
+        if (input) input.value = '';
+        document.getElementById('clearXEquipos')?.classList.remove('visible');
+
+        mostrarVista('vistaEquipos');
+        renderizarEquipos();
+    }
+
+    // ================================================================
+    // ABRIR VISTA DE REPUESTOS
+    // ================================================================
+    function abrirVistaRepuestos() {
+        filtroRepuestos = '';
+        const input = document.getElementById('inputBusquedaRepuestos');
+        if (input) input.value = '';
+        document.getElementById('clearXRepuestos')?.classList.remove('visible');
+
+        mostrarVista('vistaRepuestos');
+        renderizarRepuestos();
+    }
+
+    // ================================================================
+    // RENDERIZAR EQUIPOS
+    // ================================================================
+    function renderizarEquipos() {
+        const container = document.getElementById('listaEquipos');
+        if (!container) return;
+
+        let equipos = equiposPropios.filter(e =>
+            e.tipo_equipo === tipoActualVista &&
+            e.estado === 'activo'
+        );
+
+        if (filtroEquipos) {
+            equipos = equipos.filter(e => {
+                const texto = `${e.nombre || ''} ${e.marca || ''} ${e.placa_serie || ''}`.toLowerCase();
+                return texto.includes(filtroEquipos);
+            });
+        }
+
+        equipos.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+        if (equipos.length === 0) {
+            const nombres = { menor: 'menores', liviano: 'livianos', pesado: 'pesados' };
+            const iconos = { menor: 'fa-tools', liviano: 'fa-car', pesado: 'fa-tractor' };
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas ${iconos[tipoActualVista]}"></i></div>
+                    <h3>Sin equipos ${nombres[tipoActualVista]}</h3>
+                    <p>${filtroEquipos ? 'No se encontraron resultados con esa búsqueda.' : 'No hay equipos activos de este tipo registrados en la Base General.'}</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = equipos.map(eq => {
+            const texto = [eq.nombre, eq.marca, eq.placa_serie]
+                .filter(Boolean)
+                .join(' ')
+                .toUpperCase();
+            return `
+                <button class="equipo-btn ${eq.tipo_equipo}" onclick="seleccionarEquipo('${eq.id}')">
+                    <span class="equipo-btn-text">${escapar(texto)}</span>
+                    <i class="fas fa-chevron-right equipo-btn-arrow"></i>
+                </button>
+            `;
+        }).join('');
+    }
+
+    function filtrarEquipos() {
+        const input = document.getElementById('inputBusquedaEquipos');
+        filtroEquipos = input ? input.value.toLowerCase().trim() : '';
+        renderizarEquipos();
+    }
+
+    function limpiarBusquedaEquipos() {
+        const input = document.getElementById('inputBusquedaEquipos');
+        if (input) { input.value = ''; input.focus(); }
+        document.getElementById('clearXEquipos')?.classList.remove('visible');
+        filtroEquipos = '';
+        renderizarEquipos();
+    }
+
+    function seleccionarEquipo(id) {
+        const eq = equiposPropios.find(e => e.id === id);
+        if (!eq) return;
+        // Aquí más adelante se abrirá el detalle del equipo (mantenimiento correctivo)
+        showToast(`Seleccionado: ${eq.nombre || 'Equipo'} (próximamente se abrirá el detalle)`, 'info');
+    }
+
+    // ================================================================
+    // RENDERIZAR REPUESTOS
+    // ================================================================
+    function renderizarRepuestos() {
+        const container = document.getElementById('listaRepuestos');
+        if (!container) return;
+
+        // Si no hay búsqueda, no mostrar nada
+        if (!filtroRepuestos || filtroRepuestos.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let repuestos = repuestosCache.filter(r => {
+            const texto = `${r.descripcion || ''} ${r.codigo_oracle || ''} ${r.numero_parte || ''} ${r.marca || ''}`.toLowerCase();
+            return texto.includes(filtroRepuestos);
+        });
+
+        if (repuestos.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="padding: 30px 20px;">
+                    <div class="empty-state-icon"><i class="fas fa-search"></i></div>
+                    <h3>Sin resultados</h3>
+                    <p>No se encontraron repuestos con esa búsqueda.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = repuestos.map(rep => {
+            const titulo = [rep.descripcion, rep.marca, rep.numero_parte]
+                .filter(Boolean)
+                .join(' ')
+                .toUpperCase();
+            return `
+                <button class="equipo-btn" onclick="seleccionarRepuesto('${rep.id}')" style="border-left-color: #10b981;">
+                    <span class="equipo-btn-text">${escapar(titulo)}</span>
+                    <i class="fas fa-chevron-right equipo-btn-arrow"></i>
+                </button>
+            `;
+        }).join('');
+    }
+
+    function filtrarRepuestos() {
+        const input = document.getElementById('inputBusquedaRepuestos');
+        filtroRepuestos = input ? input.value.toLowerCase().trim() : '';
+        renderizarRepuestos();
+    }
+
+    function limpiarBusquedaRepuestos() {
+        const input = document.getElementById('inputBusquedaRepuestos');
+        if (input) { input.value = ''; input.focus(); }
+        document.getElementById('clearXRepuestos')?.classList.remove('visible');
+        filtroRepuestos = '';
+        renderizarRepuestos();
+    }
+
+    function seleccionarRepuesto(id) {
+        const rep = repuestosCache.find(r => r.id === id);
+        if (!rep) return;
+        // Aquí más adelante se abrirá el detalle del repuesto
+        showToast(`Seleccionado: ${rep.descripcion || 'Repuesto'} (próximamente)`, 'info');
+    }
+
+    // ================================================================
+    // CONTADORES
+    // ================================================================
+    function actualizarContadores() {
+        const activosDe = (tipo) => equiposPropios.filter(e => e.tipo_equipo === tipo && e.estado === 'activo').length;
+
+        const cMenor = document.getElementById('countMenor');
+        const cLiviano = document.getElementById('countLiviano');
+        const cPesado = document.getElementById('countPesado');
+        const cRep = document.getElementById('countRepuestos');
+
+        if (cMenor) cMenor.textContent = `${activosDe('menor')} activos`;
+        if (cLiviano) cLiviano.textContent = `${activosDe('liviano')} activos`;
+        if (cPesado) cPesado.textContent = `${activosDe('pesado')} activos`;
+        if (cRep) cRep.textContent = `${repuestosCache.length} registros`;
+    }
+
+    // ================================================================
+    // ACTUALIZAR UI USUARIO (header)
+    // ================================================================
+    function actualizarUIUsuario() {
+        if (!usuarioActual) return;
+        const nombre = usuarioPerfil?.nombre || usuarioActual.displayName || 'Usuario';
+        const empresa = usuarioPerfil?.empresa || '';
+        const iniciales = nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+        const foto = usuarioPerfil?.fotoBase64 || null;
+
+        const headerAvatar = document.getElementById('headerAvatar');
+        if (headerAvatar) {
+            if (foto) {
+                headerAvatar.style.backgroundImage = `url(${foto})`;
+                headerAvatar.textContent = '';
+            } else {
+                headerAvatar.style.backgroundImage = '';
+                headerAvatar.textContent = iniciales;
+            }
+        }
+
+        const subtitle = document.getElementById('headerSubtitle');
+        if (subtitle) subtitle.textContent = empresa || usuarioActual.email;
+    }
+
+    // ================================================================
+    // LISTENERS DE FIRESTORE (tiempo real)
+    // ================================================================
+    function iniciarListeners() {
+        if (!usuarioActual) return;
+
+        // Equipos propios
+        listenerEquiposActivo = db.collection('usuarios').doc(usuarioActual.uid)
+            .collection('appData').doc('equipos_propios')
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    equiposPropios = data.items || [];
+                } else {
+                    equiposPropios = [];
+                }
+                actualizarContadores();
+                if (tipoActualVista) renderizarEquipos();
+            }, (error) => {
+                console.error('Error listener equipos:', error);
+                showToast('Error al cargar equipos', 'error');
+            });
+
+        // Repuestos
+        listenerRepuestosActivo = db.collection('usuarios').doc(usuarioActual.uid)
+            .collection('appData').doc('repuestos')
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    repuestosCache = data.items || [];
+                } else {
+                    repuestosCache = [];
+                }
+                actualizarContadores();
+                const vistaRep = document.getElementById('vistaRepuestos');
+                if (vistaRep && vistaRep.classList.contains('activa')) {
+                    renderizarRepuestos();
+                }
+            }, (error) => {
+                console.error('Error listener repuestos:', error);
+            });
+    }
+
+    function detenerListeners() {
+        if (listenerEquiposActivo) { listenerEquiposActivo(); listenerEquiposActivo = null; }
+        if (listenerRepuestosActivo) { listenerRepuestosActivo(); listenerRepuestosActivo = null; }
+    }
+
+    // ================================================================
+    // AUTENTICACIÓN
+    // ================================================================
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            usuarioActual = user;
+            console.log('✅ Usuario autenticado:', user.email);
+
+            try {
+                const perfilDoc = await db.collection('usuarios').doc(user.uid).get();
+                if (perfilDoc.exists) {
+                    usuarioPerfil = perfilDoc.data();
+                } else {
+                    usuarioPerfil = {
+                        nombre: user.displayName || 'Usuario',
+                        email: user.email,
+                        empresa: ''
+                    };
+                }
+            } catch (err) {
+                console.error('Error cargando perfil:', err);
+                usuarioPerfil = {
+                    nombre: user.displayName || 'Usuario',
+                    email: user.email
+                };
+            }
+
+            actualizarUIUsuario();
+            iniciarListeners();
+            hideLoading();
+        } else {
+            // ✅ Sin sesión: marcar flag y volver al index (que mostrará login limpio)
+            console.log('⚠️ Sin sesión, redirigiendo al index...');
+            sessionStorage.setItem('mantenapp_volviendo_de_modulo', '1');
+            window.location.href = 'index.html';
+        }
+    });
+
+    // ================================================================
+    // INICIALIZACIÓN
+    // ================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Módulo Mantenimiento Correctivo iniciado');
+        actualizarContadores();
+        // Asegurar que el loading esté oculto al cargar
+        hideLoading();
+    });
+
+    // Limpieza al salir
+    window.addEventListener('beforeunload', () => {
+        detenerListeners();
+    });
+
+    </script>
+
+</body>
+</html>
